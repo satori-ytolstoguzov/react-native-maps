@@ -32,13 +32,16 @@
     [path addCoordinate:coordinates[i].coordinate];
   }
 
-   _polyline.path = path;
+  _polyline.path = path;
+
+  [self configureStyleSpansIfNeeded];
 }
 
 -(void)setStrokeColor:(UIColor *)strokeColor
 {
   _strokeColor = strokeColor;
   _polyline.strokeColor = strokeColor;
+  [self configureStyleSpansIfNeeded];
 }
 
 -(void)setStrokeWidth:(double)strokeWidth
@@ -51,6 +54,16 @@
 {
   _fillColor = fillColor;
   _polyline.spans = @[[GMSStyleSpan spanWithColor:fillColor]];
+}
+
+- (void)setLineDashPattern:(NSArray<NSNumber *> *)lineDashPattern {
+  _lineDashPattern = lineDashPattern;
+  [self configureStyleSpansIfNeeded];
+}
+
+- (void)setStrokeColors:(NSArray<UIColor *> *)strokeColors {
+  _strokeColors = strokeColors;
+  [self configureStyleSpansIfNeeded];
 }
 
 -(void)setGeodesic:(BOOL)geodesic
@@ -79,6 +92,45 @@
 
 - (void)setOnPress:(RCTBubblingEventBlock)onPress {
   _polyline.onPress = onPress;
+}
+
+- (void)configureStyleSpansIfNeeded {
+  if (_strokeColors) {
+    [self createDashPatternWithMultipleColors];
+  } else if (_strokeColor) {
+    [self configureDashPatternWithSingleColor];
+  }
+}
+
+- (void)configureDashPatternWithSingleColor {
+  if (!_strokeColor || !_lineDashPattern || !_polyline.path) {
+    return;
+  }
+
+  BOOL isLine = YES;
+  NSMutableArray *styles = [[NSMutableArray alloc] init];
+    for (NSInteger i = 0; i < _lineDashPattern.count; i++) {
+    if (isLine) {
+      [styles addObject:[GMSStrokeStyle solidColor:_strokeColor]];
+    } else {
+      [styles addObject:[GMSStrokeStyle solidColor:[UIColor clearColor]]];
+    }
+    isLine = !isLine;
+  }
+  _polyline.spans = GMSStyleSpans(_polyline.path, styles, _lineDashPattern, kGMSLengthRhumb);
+}
+
+- (void)createDashPatternWithMultipleColors {
+  if (!_strokeColors || !_lineDashPattern || !_polyline.path) {
+    return;
+  }
+
+  NSMutableArray *styles = [[NSMutableArray alloc] init];
+  for (UIColor *color in _strokeColors) {
+    [styles addObject:[GMSStrokeStyle solidColor:color]];
+  }
+
+  _polyline.spans = GMSStyleSpans(_polyline.path, styles, _lineDashPattern, kGMSLengthRhumb);
 }
 
 @end
