@@ -68,11 +68,16 @@ public class AirMapPolylineManager extends ViewGroupManager<AirMapPolyline> {
     view.setZIndex(zIndex);
   }
 
+  @ReactProp(name = "lineDashPattern")
+  public void setLineDashPattern(AirMapPolyline view, ReadableArray patternArray) {
+    view.setLineDashPattern(patternArray);
+  }
+
   @Override
   @Nullable
   public Map getExportedCustomDirectEventTypeConstants() {
     return MapBuilder.of(
-        "onPress", MapBuilder.of("registrationName", "onPress")
+            "onPress", MapBuilder.of("registrationName", "onPress")
     );
   }
 }

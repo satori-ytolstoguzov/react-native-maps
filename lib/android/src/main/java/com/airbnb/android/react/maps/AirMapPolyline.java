@@ -5,11 +5,15 @@ import android.content.Context;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.Dash;
+import com.google.android.gms.maps.model.Gap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.PatternItem;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class AirMapPolyline extends AirMapFeature {
@@ -22,6 +26,7 @@ public class AirMapPolyline extends AirMapFeature {
   private float width;
   private boolean geodesic;
   private float zIndex;
+  private List<PatternItem> lineDashPattern;
 
   public AirMapPolyline(Context context) {
     super(context);
@@ -74,6 +79,17 @@ public class AirMapPolyline extends AirMapFeature {
     return polylineOptions;
   }
 
+  public void setLineDashPattern(ReadableArray patternArray) {
+    if (patternArray != null && patternArray.size() == 2) {
+      int dashLength = patternArray.getInt(0);
+      int gapLength = patternArray.getInt(1);
+      this.lineDashPattern = Arrays.asList(new Dash(dashLength), new Gap(gapLength));
+      if (polyline != null) {
+        polyline.setPattern(this.lineDashPattern);
+      }
+    }
+  }
+
   private PolylineOptions createPolylineOptions() {
     PolylineOptions options = new PolylineOptions();
     options.addAll(coordinates);
@@ -81,6 +97,7 @@ public class AirMapPolyline extends AirMapFeature {
     options.width(width);
     options.geodesic(geodesic);
     options.zIndex(zIndex);
+    options.pattern(lineDashPattern);
     return options;
   }
 
